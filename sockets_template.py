@@ -1,6 +1,6 @@
 from binance import AsyncClient, BinanceSocketManager
 import streamlit as st
-import asyncio
+import asyncio, json
 import config
 import pandas as pd
 
@@ -50,7 +50,10 @@ async def kline_listener(client):
     async with ts as tscm:
         while True:
             res = await tscm.recv()
-            print(res)
+            # j_res = json.loads(res)
+            # print(j_res)
+            # print(res["s"])
+            print(res["p"])
 
 
 

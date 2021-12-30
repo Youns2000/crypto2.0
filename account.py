@@ -1,14 +1,16 @@
-from binance import Client, ThreadedWebsocketManager, ThreadedDepthCacheManager, AsyncClient
+from binance import AsyncClient, BinanceSocketManager
+import streamlit as st
 import pandas as pd
 import csv, time, asyncio
 import config, utils, os, usdt, currency
-import streamlit as st
 
 class Account(object):
     @classmethod
     async def create(cls):
         self = Account()
+        self.tmp = 0
         self.client = await AsyncClient.create(config.API_KEY, config.API_SECRET)
+        self.bm = BinanceSocketManager(self.client)
         self.usdt_var = usdt.USDT(self.client)
         await self.usdt_var.update_values()
         self.currencies = []
@@ -34,14 +36,14 @@ class Account(object):
 
     async def total(self):
         usdttotal = 0.00
-        # gt = await asyncio.gather(self.client.get_all_tickers())
-        gt = await self.client.get_all_tickers()
-        all_data = pd.DataFrame(gt)
-        usdttotal += self.usdt_var.fake_money
-        for c in self.currencies:
-            usdttotal += c.fake_money / float(all_data[all_data['symbol'] == c.name]['price'])
+        async with self.bm.ticker_socket():
+            gt = await self.client.get_all_tickers()
+            all_data = pd.DataFrame(gt)
+            usdttotal += self.usdt_var.fake_money
+            for c in self.currencies:
+                usdttotal += c.fake_money / float(all_data[all_data['symbol'] == c.name]['price'])
 
-        return usdttotal / float(all_data[all_data['symbol'] == 'EURUSDT']['price'])
+            return usdttotal / float(all_data[all_data['symbol'] == 'EURUSDT']['price'])
 
     # creating a currency
     # update the currency values (or create them if the curr wasn't never created)
