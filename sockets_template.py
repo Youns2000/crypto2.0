@@ -33,7 +33,7 @@ async def order_book(client, symbol):
 
 async def kline_listener(client):
     bm = BinanceSocketManager(client)
-    symbol = 'BTCUSDT'
+    symbol = 'ADAUSDT'
 #     res_count = 0
 #     async with bm.symbol_ticker_socket(symbol=symbol) as stream:
 #         # while True:
@@ -54,7 +54,6 @@ async def kline_listener(client):
             # print(j_res)
             # print(res["s"])
             print(res["p"])
-
 
 
 async def main():
