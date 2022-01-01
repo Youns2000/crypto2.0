@@ -21,7 +21,7 @@ class Currency():
         self.last_action_price_evolution = 0
         self.thread = threading.Thread(target=self.between_trade)
         self.purchases = []
-        self.bm = BinanceSocketManager(self.client)
+        # self.bm = BinanceSocketManager(self.client)
 
     def read_config(self):
         if (os.path.isfile(self.config_file)):
@@ -54,18 +54,24 @@ class Currency():
                 myfile.write("Tried to buy %s %s for %s USDT but not anought money" % (value, self.name, to_rm))
 
     async def buy_fake_percent_usdt(self, percent):
-        print("MIAOU")
         percent /= 100
         to_rm = self.usdt.fake_money * percent
-        print("ceci est mon blaz %s" % self.name)
-        ts = self.bm.trade_socket(symbol=self.name)
+
+        val = 0
+        bm = BinanceSocketManager(self.client)
+        ts = bm.trade_socket(symbol=self.name)
         async with ts as tscm:
             res = await tscm.recv()
-            # tmp_bsm = await self.bm.ticker_socket()
-            print(res)
-        # exit()
+            val = float(res["p"])
+
+        value =  to_rm / val
+
+        print("%s tah les oufs" % value)
+
+        
+        
+
         # data = pd.DataFrame()
-        # value =  to_rm / float(data[data.symbol == self.name]['lastPrice'])
         # if ((await self.usdt.remove_fake(to_rm)) == True):
         #     self.fake_money += value
         #     print("Bought %s %s for %s USDT" % (value, self.name, to_rm))
@@ -149,7 +155,7 @@ class Currency():
             # print("%s 5 last days evolution = %s" % (self.name, self.pourcent_evo(1, 5)))
             # if self.pourcent_evo(-1, 1) > 1.0 and self.pourcent_evo(1, 5) < 5.0:
             # print(self.purchases)
-            if self.pourcent_evo(-1, 1) > 3.0 and not self.purchases:
+            if self.pourcent_evo(-1, 1) > -3.0 and not self.purchases:
                 print("Buying %s" % self.name)
                 actual_time = int(round(time.time() * 1000))
                 before = self.fake_money
