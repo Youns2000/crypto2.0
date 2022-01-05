@@ -41,22 +41,21 @@ class Currency():
         df = pd.DataFrame(data=d)
         df.to_csv(self.config_file, index=False)
 
-    async def buy_fake(self, value):
-        data = pd.DataFrame(await self.client.get_ticker())
-        to_rm =  float(data[data.symbol == self.name]['lastPrice']) * value
-        if ((await self.usdt.remove_fake(to_rm)) == True):
-            self.fake_money += value
-            with open(self.logs_file, "a") as myfile:
-                myfile.write("Bought %s %s for %s USDT" % (value, self.name, to_rm))
-        else:
-            st.error('Not enought USDT')
-            with open(self.logs_file, "a") as myfile:
-                myfile.write("Tried to buy %s %s for %s USDT but not anought money" % (value, self.name, to_rm))
+    # async def buy_fake(self, value):
+    #     data = pd.DataFrame(await self.client.get_ticker())
+    #     to_rm =  float(data[data.symbol == self.name]['lastPrice']) * value
+    #     if ((await self.usdt.remove_fake(to_rm)) == True):
+    #         self.fake_money += value
+    #         with open(self.logs_file, "a") as myfile:
+    #             myfile.write("Bought %s %s for %s USDT" % (value, self.name, to_rm))
+    #     else:
+    #         st.error('Not enought USDT')
+    #         with open(self.logs_file, "a") as myfile:
+    #             myfile.write("Tried to buy %s %s for %s USDT but not anought money" % (value, self.name, to_rm))
 
-    async def buy_fake_percent_usdt(self, percent):
+    async def buy_fake_percent_usdt(self, percent, really):
         percent /= 100
         to_rm = self.usdt.fake_money * percent
-
         val = 0
         bm = BinanceSocketManager(self.client)
         ts = bm.trade_socket(symbol=self.name)
@@ -66,21 +65,19 @@ class Currency():
 
         value =  to_rm / val
 
-        print("%s tah les oufs" % value)
-
+        if really == False:
+            return val
         
-        
-
-        # data = pd.DataFrame()
-        # if ((await self.usdt.remove_fake(to_rm)) == True):
-        #     self.fake_money += value
-        #     print("Bought %s %s for %s USDT" % (value, self.name, to_rm))
-        #     with open(self.logs_file, "a") as myfile:
-        #         myfile.write("Bought %s %s for %s USDT" % (value, self.name, to_rm))
-        # else:
-        #     st.error('Not enought USDT')
-        #     with open(self.logs_file, "a") as myfile:
-        #         myfile.write("Tried to buy %s %s for %s USDT but not anought money" % (value, self.name, to_rm))
+        if ((await self.usdt.remove_fake(to_rm)) == True):
+            self.fake_money += value
+            print("Bought %s %s for %s USDT" % (value, self.name, to_rm))
+            with open(self.logs_file, "a") as myfile:
+                myfile.write("Bought %s %s for %s USDT\n" % (value, self.name, to_rm))
+        else:
+            st.error('Not enought USDT')
+            print("Tried to buy %s %s for %s USDT but not anought money" % (value, self.name, to_rm))
+            with open(self.logs_file, "a") as myfile:
+                myfile.write("Tried to buy %s %s for %s USDT but not anought money\n" % (value, self.name, to_rm))
 
     async def sell_fake(self, percent):
         percent /= 100
@@ -148,24 +145,31 @@ class Currency():
         # print("%s -> %s = %s " % (first, last, pourcent))
         return pourcent
 
+    def calculate_benef(self, actual):
+        last_purchase = self.purchases[-1][1]
+        benef_poucent = ((actual - last_purchase) / actual) * 100
+        return benef_poucent
+
     async def trade(self):
         while True:
-            # if self.name == "ADAUSDT":
-            print("%s 1 last days evolution = %s" % (self.name, self.pourcent_evo(-1, 1)))
-            # print("%s 5 last days evolution = %s" % (self.name, self.pourcent_evo(1, 5)))
-            # if self.pourcent_evo(-1, 1) > 1.0 and self.pourcent_evo(1, 5) < 5.0:
-            # print(self.purchases)
-            if self.pourcent_evo(-1, 1) > -3.0 and not self.purchases:
-                print("Buying %s" % self.name)
-                actual_time = int(round(time.time() * 1000))
-                before = self.fake_money
-                await self.buy_fake_percent_usdt(50)
-                after = self.fake_money
+            # print("%s 1 last days evolution = %s" % (self.name, self.pourcent_evo(-1, 1)))
 
-                self.purchases.append([actual_time, (after - before)])
-                # self.purchases.append(actual_time)
-            # print("I'm trading %s..." % self.name)
-            time.sleep(3)
+
+            if not self.purchases:
+                if self.pourcent_evo(-1, 1) > -10.0:
+                    # print("Buying %s" % self.name)
+                    before = self.fake_money
+                    await self.buy_fake_percent_usdt(50, True)
+                    after = self.fake_money
+                    actual_time = int(round(time.time() * 1000))
+                    self.purchases.append([actual_time, (after - before)])
+
+            else:
+                print("%s benef -> %s" % (self.name, self.calculate_benef(await self.buy_fake_percent_usdt(50, False))))
+
+                
+            
+
 
     def between_trade(self):
         loop = asyncio.new_event_loop()
