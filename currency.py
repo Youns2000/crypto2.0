@@ -25,7 +25,7 @@ class Currency():
 
     def read_config(self):
         if (os.path.isfile(self.config_file)):
-            d = pd.read_csv(self.config_file, 
+            d = pd.read_csv(self.config_file,
                 index_col='id', 
                 header=0,
                 names=['id', 'value'])
@@ -72,7 +72,8 @@ class Currency():
             self.fake_money += value
             print("Bought %s %s for %s USDT" % (value, self.name, to_rm))
             with open(self.logs_file, "a") as myfile:
-                myfile.write("Bought %s %s for %s USDT\n" % (value, self.name, to_rm))
+                myfile.write("Bought %s %s for %s USDT at %s\n" % (value, self.name, to_rm, time.time()))
+            await self.write_config()
         else:
             st.error('Not enought USDT')
             print("Tried to buy %s %s for %s USDT but not anought money" % (value, self.name, to_rm))
@@ -144,6 +145,7 @@ class Currency():
         pourcent = ((last - first) / first) * 100
         # print("%s -> %s = %s " % (first, last, pourcent))
         return pourcent
+        
 
     def calculate_benef(self, actual):
         last_purchase = self.purchases[-1][1]
@@ -153,7 +155,6 @@ class Currency():
     async def trade(self):
         while True:
             # print("%s 1 last days evolution = %s" % (self.name, self.pourcent_evo(-1, 1)))
-
 
             if not self.purchases:
                 if self.pourcent_evo(-1, 1) > -10.0:
