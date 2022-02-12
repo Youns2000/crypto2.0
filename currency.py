@@ -169,9 +169,7 @@ class Currency():
                 print("%s benef -> %s" % (self.name, self.calculate_benef(await self.buy_fake_percent_usdt(50, False))))
 
                 
-            
-
-
+        
     def between_trade(self):
         loop = asyncio.new_event_loop()
         loop.run_until_complete(self.trade())
