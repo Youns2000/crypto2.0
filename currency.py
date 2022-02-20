@@ -8,7 +8,7 @@ from usdt import *
 class Currency():
     def __init__(self, name, client, usdt):
         self.client = client
-        self.name = name+"USDT"
+        self.name = name + "USDT"
         self.file = self.name+"/"+self.name+".csv"
         self.config_file = self.name+"/"+self.name+"_config.csv"
         self.logs_file = "logs.txt"
@@ -41,17 +41,11 @@ class Currency():
         df = pd.DataFrame(data=d)
         df.to_csv(self.config_file, index=False)
 
-    # async def buy_fake(self, value):
-    #     data = pd.DataFrame(await self.client.get_ticker())
-    #     to_rm =  float(data[data.symbol == self.name]['lastPrice']) * value
-    #     if ((await self.usdt.remove_fake(to_rm)) == True):
-    #         self.fake_money += value
-    #         with open(self.logs_file, "a") as myfile:
-    #             myfile.write("Bought %s %s for %s USDT" % (value, self.name, to_rm))
-    #     else:
-    #         st.error('Not enought USDT')
-    #         with open(self.logs_file, "a") as myfile:
-    #             myfile.write("Tried to buy %s %s for %s USDT but not anought money" % (value, self.name, to_rm))
+   
+    async def buy_real_percent_usdt(self, percent, really):
+        create_test_order()
+
+        response = create_order(self.name, )
 
     async def buy_fake_percent_usdt(self, percent, really):
         percent /= 100
@@ -124,8 +118,6 @@ class Currency():
         else:
             self.data = p_t_v
             p_t_v.to_csv(self.file, index=False)
-        
-
             
         return True
 

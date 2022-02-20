@@ -7,6 +7,7 @@ import streamlit as st
 import threading
 import traceback
 from queue import Queue
+import time
 
 async def print_infos(total, acc, df, tab, logs):
     while True:
@@ -44,6 +45,15 @@ async def add_curr(curr, acc):
         st.write("Added", curr, "currency")
     else:
         st.error("Currency doesn't exist")
+
+def test_function():
+    f = open("test.txt", "a")
+    a = 0
+    while True:
+        f.write(str(a) + "\n")
+        a += 1
+        time.sleep(0.3)
+    f.close()
 
 if __name__ == "__main__":
     loop = asyncio.new_event_loop()
@@ -89,6 +99,9 @@ if __name__ == "__main__":
 
     ######### STARTING THREADS ############
     update_files_thread = threading.Thread(target=between_update_files, args=(acc,))
+
+    test_thread = threading.Thread(target=test_function, args=())
+
     st.success("Update files thread created !")
     print("Update files thread created !")
     # print_info_thread = threading.Thread(target=between_print_infos, args=(total, acc, df, tab,))
@@ -101,6 +114,7 @@ if __name__ == "__main__":
             print("%s thread started !" % c.name)
 
     try:
+        test_thread.start()
         update_files_thread.start()
     except Exception:
         traceback.print_exc()
@@ -124,6 +138,7 @@ if __name__ == "__main__":
             print("%s thread killed !" % c.name)
 
     update_files_thread.join()
+    test_thread.join()
     st.success("Update files thread killed !" % c.name)
     print("Update files thread killed !" % c.name)
     # print_info_thread.join()
